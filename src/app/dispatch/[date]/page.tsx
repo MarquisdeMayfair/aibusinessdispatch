@@ -1,10 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getNewsletterByDate } from "@/lib/data";
+import { getNewsletterByDate, getNewsletters } from "@/lib/data";
 import { formatDispatchDate } from "@/lib/utils";
 import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import type { Metadata } from "next";
+import type { Newsletter } from "@/lib/types";
+
+const SITE_URL = "https://aibusinessdispatch.com";
 
 export const revalidate = 300;
 
@@ -15,10 +18,96 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const newsletter = await getNewsletterByDate(date);
   if (!newsletter) return {};
 
+  const title = newsletter.seo_title || newsletter.title;
+  const description = newsletter.seo_description || newsletter.editorial_intro;
+  const url = `${SITE_URL}/dispatch/${newsletter.date}`;
+
   return {
-    title: newsletter.seo_title,
-    description: newsletter.seo_description,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "article",
+      publishedTime: newsletter.date,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   };
+}
+
+export async function generateStaticParams() {
+  const newsletters = await getNewsletters();
+  return newsletters.map((n) => ({ date: n.date }));
+}
+
+function NewsletterJsonLd({ newsletter }: { newsletter: Newsletter }) {
+  const url = `${SITE_URL}/dispatch/${newsletter.date}`;
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    headline: newsletter.title,
+    description: newsletter.editorial_intro,
+    datePublished: newsletter.date,
+    dateModified: newsletter.created_at || newsletter.date,
+    publisher: {
+      "@type": "Organization",
+      name: "AI Business Dispatch",
+      url: SITE_URL,
+    },
+    isPartOf: {
+      "@type": "Periodical",
+      name: "AI Business Dispatch",
+      url: SITE_URL,
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+function BreadcrumbJsonLd({ newsletter }: { newsletter: Newsletter }) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Dispatch Archive",
+        item: `${SITE_URL}/dispatch`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: newsletter.title,
+      },
+    ],
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
 }
 
 export default async function DispatchDatePage({ params }: PageProps) {
@@ -28,21 +117,33 @@ export default async function DispatchDatePage({ params }: PageProps) {
 
   return (
     <>
+      <NewsletterJsonLd newsletter={newsletter} />
+      <BreadcrumbJsonLd newsletter={newsletter} />
+
       <Masthead />
       <main className="max-w-3xl mx-auto px-4 py-12">
-        <nav className="mb-8 text-xs font-mono text-text-muted">
-          <Link href="/" className="hover:text-text-primary transition-colors">
-            Dispatch
-          </Link>
-          <span className="mx-2">/</span>
-          <Link
-            href="/dispatch"
-            className="hover:text-text-primary transition-colors"
-          >
-            Archive
-          </Link>
-          <span className="mx-2">/</span>
-          <span>{date}</span>
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-8 text-xs font-mono text-text-muted"
+        >
+          <ol className="flex items-center gap-0">
+            <li>
+              <Link href="/" className="hover:text-text-primary transition-colors">
+                Dispatch
+              </Link>
+            </li>
+            <li aria-hidden="true" className="mx-2">/</li>
+            <li>
+              <Link
+                href="/dispatch"
+                className="hover:text-text-primary transition-colors"
+              >
+                Archive
+              </Link>
+            </li>
+            <li aria-hidden="true" className="mx-2">/</li>
+            <li>{date}</li>
+          </ol>
         </nav>
 
         <header className="mb-10">

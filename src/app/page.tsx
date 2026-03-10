@@ -4,8 +4,48 @@ import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import JournalistProfiles from "@/components/JournalistProfiles";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import type { Metadata } from "next";
 
-export const revalidate = 300; // revalidate every 5 minutes
+export const revalidate = 300;
+
+export const metadata: Metadata = {
+  title: "AI Business Dispatch — Intelligence for the AI-Augmented Enterprise",
+  description:
+    "Today's sharpest AI business analysis. Eight specialist journalists deliver daily intelligence on risks, opportunities, strategy, finance, SaaS, creative and technical deep-dives.",
+  alternates: { canonical: "https://aibusinessdispatch.com" },
+};
+
+function WebSiteJsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "AI Business Dispatch",
+    alternateName: "AIBD",
+    url: "https://aibusinessdispatch.com",
+    description:
+      "Intelligence for the AI-Augmented Enterprise. Eight specialist journalists, daily analysis.",
+    publisher: {
+      "@type": "Organization",
+      name: "AI Business Dispatch",
+      url: "https://aibusinessdispatch.com",
+    },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate:
+          "https://aibusinessdispatch.com/articles?q={search_term_string}",
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
 
 export default async function HomePage() {
   const articles = await getArticles();
@@ -16,6 +56,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <WebSiteJsonLd />
       <Masthead />
 
       <main className="max-w-7xl mx-auto px-4">

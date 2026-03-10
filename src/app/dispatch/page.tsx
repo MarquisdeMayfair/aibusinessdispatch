@@ -5,9 +5,13 @@ import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import type { Metadata } from "next";
 
+const SITE_URL = "https://aibusinessdispatch.com";
+
 export const metadata: Metadata = {
-  title: "Dispatch Archive — AI Business Dispatch",
-  description: "Browse past editions of the AI Business Dispatch.",
+  title: "Dispatch Archive",
+  description:
+    "Every edition of the AI Business Dispatch newsletter. Daily intelligence briefings compiled from eight specialist AI journalists.",
+  alternates: { canonical: `${SITE_URL}/dispatch` },
 };
 
 export const revalidate = 300;

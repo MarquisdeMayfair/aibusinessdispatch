@@ -8,6 +8,9 @@ import Footer from "@/components/Footer";
 import JournalistIcon from "@/components/JournalistIcon";
 import ArticleBody from "./ArticleBody";
 import type { Metadata } from "next";
+import type { Article } from "@/lib/types";
+
+const SITE_URL = "https://aibusinessdispatch.com";
 
 export const revalidate = 300;
 
@@ -18,15 +21,33 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const article = await getArticleBySlug(slug);
   if (!article) return {};
 
+  const journalist = JOURNALISTS[article.journalist];
+  const title = article.meta_title || article.headline;
+  const description = article.meta_description || article.hook;
+  const url = `${SITE_URL}/article/${article.slug}`;
+  const images = article.image_hero_url || article.image_url;
+
   return {
-    title: `${article.headline} — AI Business Dispatch`,
-    description: article.hook,
+    title,
+    description,
+    alternates: { canonical: url },
     openGraph: {
-      title: article.headline,
-      description: article.hook,
+      title,
+      description,
+      url,
       type: "article",
       publishedTime: article.date,
-      authors: [JOURNALISTS[article.journalist]?.name],
+      modifiedTime: article.created_at,
+      authors: journalist ? [journalist.name] : undefined,
+      section: article.category,
+      tags: article.tags,
+      ...(images ? { images: [{ url: images, width: 1200, height: 630, alt: article.headline }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(images ? { images: [images] } : {}),
     },
   };
 }
@@ -34,6 +55,90 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export async function generateStaticParams() {
   const articles = await getArticles();
   return articles.map((a) => ({ slug: a.slug }));
+}
+
+function ArticleJsonLd({ article }: { article: Article }) {
+  const journalist = JOURNALISTS[article.journalist];
+  const url = `${SITE_URL}/article/${article.slug}`;
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    headline: article.headline,
+    description: article.hook,
+    datePublished: article.date,
+    dateModified: article.created_at,
+    author: {
+      "@type": "Person",
+      name: journalist?.name || article.journalist_name || "AI Business Dispatch",
+      jobTitle: journalist?.title || article.journalist_title,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "AI Business Dispatch",
+      url: SITE_URL,
+    },
+    articleSection: article.category,
+    keywords: article.tags?.join(", "),
+    wordCount: article.body?.split(/\s+/).length,
+    ...(article.image_hero_url || article.image_url
+      ? {
+          image: {
+            "@type": "ImageObject",
+            url: article.image_hero_url || article.image_url,
+          },
+        }
+      : {}),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+function BreadcrumbJsonLd({ article }: { article: Article }) {
+  const journalist = JOURNALISTS[article.journalist];
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Articles",
+        item: `${SITE_URL}/articles`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: journalist?.name || article.journalist,
+        item: `${SITE_URL}/articles?journalist=${article.journalist}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: article.headline,
+      },
+    ],
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
 }
 
 export default async function ArticlePage({ params }: PageProps) {
@@ -45,18 +150,39 @@ export default async function ArticlePage({ params }: PageProps) {
 
   return (
     <>
+      <ArticleJsonLd article={article} />
+      <BreadcrumbJsonLd article={article} />
+
       <Masthead />
 
       <article className="max-w-3xl mx-auto px-4 py-12">
         {/* Breadcrumb */}
-        <nav className="mb-8 text-xs font-mono text-text-muted">
-          <Link href="/" className="hover:text-text-primary transition-colors">
-            Dispatch
-          </Link>
-          <span className="mx-2">/</span>
-          <span style={{ color: journalist?.color }}>
-            {journalist?.name}
-          </span>
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-8 text-xs font-mono text-text-muted"
+        >
+          <ol className="flex items-center gap-0">
+            <li>
+              <Link href="/" className="hover:text-text-primary transition-colors">
+                Dispatch
+              </Link>
+            </li>
+            <li aria-hidden="true" className="mx-2">/</li>
+            <li>
+              <Link
+                href="/articles"
+                className="hover:text-text-primary transition-colors"
+              >
+                Articles
+              </Link>
+            </li>
+            <li aria-hidden="true" className="mx-2">/</li>
+            <li>
+              <span style={{ color: journalist?.color }}>
+                {journalist?.name}
+              </span>
+            </li>
+          </ol>
         </nav>
 
         {/* Header */}
@@ -97,7 +223,7 @@ export default async function ArticlePage({ params }: PageProps) {
           </p>
 
           <div className="mt-4 flex items-center gap-4 text-xs font-mono text-text-muted">
-            <span>{formatArticleDate(article.date)}</span>
+            <time dateTime={article.date}>{formatArticleDate(article.date)}</time>
             <span className="text-text-faint">·</span>
             <span>{readingTime(article.body)}</span>
           </div>
@@ -113,6 +239,18 @@ export default async function ArticlePage({ params }: PageProps) {
             ))}
           </div>
         </header>
+
+        {/* Hero image */}
+        {(article.image_hero_url || article.image_url) && (
+          <figure className="mb-10 rounded-lg overflow-hidden">
+            <img
+              src={article.image_hero_url || article.image_url!}
+              alt={article.headline}
+              className="w-full h-auto"
+              loading="eager"
+            />
+          </figure>
+        )}
 
         {/* Accent divider */}
         <div
