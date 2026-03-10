@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
     created_at: new Date().toISOString(),
   };
 
-  const { data, error } = await sb.from("articles").insert(article).select().single();
+  const { data, error } = await sb.from("articles").upsert(article, { onConflict: "id" }).select().single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
