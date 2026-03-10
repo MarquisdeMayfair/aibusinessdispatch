@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --font-playfair: 'Playfair Display', Georgia, serif;
+  --font-source: 'Source Serif 4', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-bg-primary: #080808;
+  --color-bg-card: #0D0D0D;
+  --color-bg-elevated: #111111;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-text-primary: #F5F0EB;
+  --color-text-secondary: #A0978E;
+  --color-text-muted: #666666;
+  --color-text-faint: #444444;
+
+  --color-border: #1a1a1a;
+  --color-border-hover: #333333;
+
+  --color-accent-doom: #E63946;
+  --color-accent-optimist: #2EC4B6;
+  --color-accent-tech: #9B5DE5;
+  --color-accent-strategy: #1D3557;
+  --color-accent-secretarial: #457B9D;
+  --color-accent-finance: #E9C46A;
+  --color-accent-saas: #F77F00;
+  --color-accent-creative: #D62828;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-source);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: #E6394640;
+  color: var(--color-text-primary);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
