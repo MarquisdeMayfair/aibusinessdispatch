@@ -11,32 +11,44 @@ function authorize(req: NextRequest): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  if (!authorize(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    if (!authorize(req)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const sb = supabaseAdmin();
-  if (!sb) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json(
+        { error: "Blob storage not configured — set BLOB_READ_WRITE_TOKEN" },
+        { status: 503 },
+      );
+    }
+
+    const sb = supabaseAdmin();
+    if (!sb) {
+      return NextResponse.json(
+        { error: "Database not configured" },
+        { status: 503 },
+      );
+    }
+
+    const contentType = req.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      return await handleJsonUpload(req, sb);
+    }
+
+    if (contentType.includes("multipart/form-data")) {
+      return await handleFormUpload(req, sb);
+    }
+
     return NextResponse.json(
-      { error: "Database not configured" },
-      { status: 503 },
+      { error: "Content-Type must be application/json or multipart/form-data" },
+      { status: 400 },
     );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const contentType = req.headers.get("content-type") || "";
-
-  if (contentType.includes("application/json")) {
-    return handleJsonUpload(req, sb);
-  }
-
-  if (contentType.includes("multipart/form-data")) {
-    return handleFormUpload(req, sb);
-  }
-
-  return NextResponse.json(
-    { error: "Content-Type must be application/json or multipart/form-data" },
-    { status: 400 },
-  );
 }
 
 async function handleJsonUpload(
