@@ -6,6 +6,7 @@ import ArticleCard from "@/components/ArticleCard";
 import JournalistProfiles from "@/components/JournalistProfiles";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import JournalistIcon from "@/components/JournalistIcon";
+import NewsTicker from "@/components/NewsTicker";
 import { JOURNALISTS } from "@/lib/journalists";
 import { readingTime } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -160,6 +161,9 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Breaking News RSS Ticker */}
+      <NewsTicker />
 
       {/* Hot Topics Ticker */}
       {articles.length > 1 && (
