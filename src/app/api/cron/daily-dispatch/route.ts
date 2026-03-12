@@ -62,17 +62,41 @@ export async function GET(req: NextRequest) {
 
   const { data: existing } = await sb
     .from("articles")
-    .select("id")
+    .select("id, image_hero_url, image_prompt")
     .eq("id", articleId)
     .maybeSingle();
 
-  if (existing) {
+  if (existing && existing.image_hero_url) {
     return NextResponse.json({
       status: "skipped",
       reason: "Article already exists for today",
       articleId,
       journalist: journalistKey,
     });
+  }
+
+  if (existing && !existing.image_hero_url && process.env.XAI_API_KEY) {
+    try {
+      const imgResult = await generateImage(
+        articleId,
+        (existing.image_prompt as string) || promptData.name,
+        promptData.imageStylePrefix,
+        sb,
+      );
+      return NextResponse.json({
+        status: "image_repaired",
+        articleId,
+        journalist: journalistKey,
+        image: imgResult,
+      });
+    } catch (err) {
+      return NextResponse.json({
+        status: "image_repair_failed",
+        articleId,
+        journalist: journalistKey,
+        error: String(err),
+      });
+    }
   }
 
   const userMessage = `Today is ${dateStr}. Research and write today's article. Use web search to find a fresh, real story from the last 48 hours that fits your beat. Return ONLY the JSON article object — no commentary, no markdown fences, just the JSON.`;
