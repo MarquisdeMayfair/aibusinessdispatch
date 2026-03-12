@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { put } from "@vercel/blob";
 import { todaysJournalist, journalistArticleId } from "@/lib/rotation";
 import { getJournalistPrompt } from "@/lib/journalist-prompts";
 import { slugify } from "@/lib/utils";
@@ -174,6 +175,7 @@ export async function GET(req: NextRequest) {
         articleId,
         article.image_prompt as string,
         promptData.imageStylePrefix,
+        sb,
       );
       results.image = imgResult;
     } catch (err) {
@@ -188,11 +190,9 @@ async function generateImage(
   articleId: string,
   prompt: string,
   stylePrefix: string,
+  sb: ReturnType<typeof supabaseAdmin>,
 ): Promise<{ url: string }> {
   const XAI_API_KEY = process.env.XAI_API_KEY!;
-  const API_SECRET = process.env.API_SECRET!;
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://aibusinessdispatch.vercel.app";
-
   const fullPrompt = `${stylePrefix} ${prompt}. Editorial magazine illustration, high quality, detailed.`;
 
   const xaiRes = await fetch("https://api.x.ai/v1/images/generations", {
@@ -202,10 +202,11 @@ async function generateImage(
       Authorization: `Bearer ${XAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "grok-2-image",
+      model: "grok-imagine-image",
       prompt: fullPrompt,
       n: 1,
       response_format: "b64_json",
+      aspect_ratio: "16:9",
     }),
   });
 
@@ -218,24 +219,22 @@ async function generateImage(
   const b64 = xaiData.data?.[0]?.b64_json;
   if (!b64) throw new Error("No image data in xAI response");
 
-  const uploadRes = await fetch(`${SITE_URL}/api/images`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${API_SECRET}`,
-    },
-    body: JSON.stringify({
-      article_id: articleId,
-      image_base64: b64,
-      filename: "hero.png",
-      variant: "hero",
-    }),
+  const buffer = Buffer.from(b64, "base64");
+  const blobName = `articles/${articleId}/hero.png`;
+
+  const blob = await put(blobName, buffer, {
+    access: "public",
+    contentType: "image/png",
+    addRandomSuffix: false,
+    allowOverwrite: true,
   });
 
-  if (!uploadRes.ok) {
-    const errText = await uploadRes.text();
-    throw new Error(`Image upload error ${uploadRes.status}: ${errText.slice(0, 500)}`);
+  if (sb) {
+    await sb
+      .from("articles")
+      .update({ image_hero_url: blob.url, image_url: blob.url })
+      .eq("id", articleId);
   }
 
-  return uploadRes.json();
+  return { url: blob.url };
 }
