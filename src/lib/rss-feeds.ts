@@ -22,7 +22,7 @@ export interface TickerItem {
 }
 
 function extractCDATA(raw: string): string {
-  const m = raw.match(/<!\[CDATA\[(.*?)\]\]>/s);
+  const m = raw.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
   return m ? m[1].trim() : raw.replace(/<[^>]+>/g, "").trim();
 }
 
