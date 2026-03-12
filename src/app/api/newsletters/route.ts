@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await sb
     .from("newsletters")
-    .insert(newsletter)
+    .upsert(newsletter, { onConflict: "date" })
     .select()
     .single();
 
