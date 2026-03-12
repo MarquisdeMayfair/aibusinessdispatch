@@ -77,6 +77,8 @@ async function handleJsonUpload(
   const blob = await put(blobName, buffer, {
     access: "public",
     contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
+    addRandomSuffix: false,
+    allowOverwrite: true,
   });
 
   const fieldMap: Record<string, string> = {
@@ -123,6 +125,8 @@ async function handleFormUpload(
   const blob = await put(blobName, file, {
     access: "public",
     contentType: file.type,
+    addRandomSuffix: false,
+    allowOverwrite: true,
   });
 
   const fieldMap: Record<string, string> = {
