@@ -30,31 +30,33 @@ export default function NewsTicker() {
   const doubled = [...items, ...items];
 
   return (
-    <div
-      className="relative w-full overflow-hidden border-y border-white/10 bg-black/60 backdrop-blur-sm"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      <div className="flex items-center">
-        <div className="z-10 flex-shrink-0 bg-violet-600 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white">
-          Breaking
-        </div>
+    <div className="border-y border-white/10 bg-black/60 backdrop-blur-sm">
+      <div
+        className="relative mx-auto max-w-7xl overflow-hidden px-4"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <div className="flex items-center">
+          <div className="z-10 flex-shrink-0 bg-violet-600 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white">
+            Breaking
+          </div>
 
-        <div className="relative flex-1 overflow-hidden">
-          <div className="absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-black/80 to-transparent" />
-          <div className="absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-black/80 to-transparent" />
+          <div className="relative flex-1 overflow-hidden">
+            <div className="absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-black/80 to-transparent" />
+            <div className="absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-black/80 to-transparent" />
 
-          <div
-            ref={scrollRef}
-            className="flex gap-8 py-2.5"
-            style={{
-              animation: `ticker-scroll ${items.length * 4}s linear infinite`,
-              animationPlayState: isPaused ? "paused" : "running",
-            }}
-          >
-            {doubled.map((item, i) => (
-              <TickerLink key={`${item.url}-${i}`} item={item} />
-            ))}
+            <div
+              ref={scrollRef}
+              className="flex gap-8 py-2.5"
+              style={{
+                animation: `ticker-scroll ${items.length * 4}s linear infinite`,
+                animationPlayState: isPaused ? "paused" : "running",
+              }}
+            >
+              {doubled.map((item, i) => (
+                <TickerLink key={`${item.url}-${i}`} item={item} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
