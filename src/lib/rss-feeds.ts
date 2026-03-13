@@ -21,9 +21,28 @@ export interface TickerItem {
   isInternal: boolean;
 }
 
+function decodeEntities(text: string): string {
+  return text
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&rsquo;/g, "\u2019")
+    .replace(/&lsquo;/g, "\u2018")
+    .replace(/&rdquo;/g, "\u201D")
+    .replace(/&ldquo;/g, "\u201C")
+    .replace(/&mdash;/g, "\u2014")
+    .replace(/&ndash;/g, "\u2013")
+    .replace(/&nbsp;/g, " ");
+}
+
 function extractCDATA(raw: string): string {
   const m = raw.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
-  return m ? m[1].trim() : raw.replace(/<[^>]+>/g, "").trim();
+  const text = m ? m[1].trim() : raw.replace(/<[^>]+>/g, "").trim();
+  return decodeEntities(text);
 }
 
 function parseRSSItems(xml: string, sourceName: string): TickerItem[] {
