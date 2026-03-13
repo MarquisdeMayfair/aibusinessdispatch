@@ -30,6 +30,12 @@ If still FAIL: Return abort JSON.
 {"status":"ABORTED","journalist":"YOUR_KEY","date":"YYYY-MM-DD","reason":"No fresh sources found","searches_attempted":["query1","query2"]}
 \`\`\`
 
+## BODY FORMATTING — CRITICAL
+- The "body" field is clean Markdown rendered on the website. Do NOT include <cite> tags, source annotations, or index markers in the body text. Cite tags are an internal tool artifact — strip them before output.
+- Do NOT start the body with the headline as an H1 (# Headline). The headline is already displayed above the article. Start the body with your opening paragraph or subheading.
+- Use ## for section headings, ### for sub-sections. Never use # (H1) in the body.
+- Sources go in the "sources" array, not inline cite tags.
+
 ## WRITING LIKE A HUMAN — MANDATORY
 
 ### BANNED patterns (these flag AI detection):
