@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { todaysJournalist, journalistArticleId } from "@/lib/rotation";
+import {
+  todaysJournalist,
+  journalistArticleId,
+  isSunday,
+  SUNDAY_JOURNALISTS,
+} from "@/lib/rotation";
 import { getJournalistPrompt } from "@/lib/journalist-prompts";
 import { slugify } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase";
+import { JournalistKey } from "@/lib/types";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -38,27 +44,29 @@ function extractJSON(text: string): Record<string, unknown> | null {
   }
 }
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
-export async function GET(req: NextRequest) {
-  if (!authorize(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+type SB = NonNullable<ReturnType<typeof supabaseAdmin>>;
 
-  if (!ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 503 });
-  }
+interface ArticleResult {
+  journalist: JournalistKey;
+  articleId: string;
+  status: string;
+  headline?: string;
+  slug?: string;
+  image?: { url: string };
+  imageError?: string;
+  error?: string;
+  reason?: string;
+}
 
-  const sb = supabaseAdmin();
-  if (!sb) {
-    return NextResponse.json({ error: "Database not configured" }, { status: 503 });
-  }
-
-  const now = new Date();
-  const dateStr = now.toISOString().split("T")[0];
-  const journalistKey = todaysJournalist(now);
-  const articleId = journalistArticleId(journalistKey, now);
-  const promptData = getJournalistPrompt(journalistKey);
+async function processJournalist(
+  key: JournalistKey,
+  dateStr: string,
+  sb: SB,
+): Promise<ArticleResult> {
+  const articleId = journalistArticleId(key, new Date(dateStr + "T00:00:00Z"));
+  const promptData = getJournalistPrompt(key);
 
   const { data: existing } = await sb
     .from("articles")
@@ -67,35 +75,20 @@ export async function GET(req: NextRequest) {
     .maybeSingle();
 
   if (existing && existing.image_hero_url) {
-    return NextResponse.json({
-      status: "skipped",
-      reason: "Article already exists for today",
-      articleId,
-      journalist: journalistKey,
-    });
+    return { journalist: key, articleId, status: "skipped" };
   }
 
   if (existing && !existing.image_hero_url && process.env.XAI_API_KEY) {
     try {
-      const imgResult = await generateImage(
+      const img = await generateImage(
         articleId,
         (existing.image_prompt as string) || promptData.name,
         promptData.imageStylePrefix,
         sb,
       );
-      return NextResponse.json({
-        status: "image_repaired",
-        articleId,
-        journalist: journalistKey,
-        image: imgResult,
-      });
+      return { journalist: key, articleId, status: "image_repaired", image: img };
     } catch (err) {
-      return NextResponse.json({
-        status: "image_repair_failed",
-        articleId,
-        journalist: journalistKey,
-        error: String(err),
-      });
+      return { journalist: key, articleId, status: "image_repair_failed", imageError: String(err) };
     }
   }
 
@@ -107,7 +100,7 @@ export async function GET(req: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
+        "x-api-key": ANTHROPIC_API_KEY!,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
@@ -127,18 +120,12 @@ export async function GET(req: NextRequest) {
 
     if (!res.ok) {
       const errBody = await res.text();
-      return NextResponse.json(
-        { error: "Claude API error", status: res.status, body: errBody },
-        { status: 502 },
-      );
+      return { journalist: key, articleId, status: "claude_error", error: `${res.status}: ${errBody.slice(0, 500)}` };
     }
 
     claudeResponse = await res.json();
   } catch (err) {
-    return NextResponse.json(
-      { error: "Failed to call Claude API", detail: String(err) },
-      { status: 502 },
-    );
+    return { journalist: key, articleId, status: "claude_error", error: String(err) };
   }
 
   const textBlocks = claudeResponse.content
@@ -149,72 +136,93 @@ export async function GET(req: NextRequest) {
   const article = extractJSON(textBlocks);
 
   if (!article) {
-    return NextResponse.json(
-      { error: "Could not parse article JSON from Claude", raw: textBlocks.slice(0, 2000) },
-      { status: 500 },
-    );
+    return { journalist: key, articleId, status: "parse_error", error: textBlocks.slice(0, 500) };
   }
 
   if (article.status === "ABORTED") {
-    return NextResponse.json({
-      status: "aborted",
-      journalist: journalistKey,
-      reason: article.reason,
-      searches: article.searches_attempted,
-    });
+    return { journalist: key, articleId, status: "aborted", reason: article.reason as string };
   }
 
   const slug = slugify(article.headline as string);
   const record = {
     ...article,
     id: articleId,
-    journalist: journalistKey,
+    journalist: key,
     date: dateStr,
     slug,
     status: "published",
     created_at: new Date().toISOString(),
   };
 
-  const { data, error } = await sb
+  const { error } = await sb
     .from("articles")
     .upsert(record, { onConflict: "id" })
     .select()
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message, article: record }, { status: 500 });
+    return { journalist: key, articleId, status: "db_error", error: error.message };
   }
 
-  const results: Record<string, unknown> = {
-    status: "published",
+  const result: ArticleResult = {
+    journalist: key,
     articleId,
-    journalist: journalistKey,
-    headline: article.headline,
+    status: "published",
+    headline: article.headline as string,
     slug,
   };
 
   if (process.env.XAI_API_KEY && article.image_prompt) {
     try {
-      const imgResult = await generateImage(
+      result.image = await generateImage(
         articleId,
         article.image_prompt as string,
         promptData.imageStylePrefix,
         sb,
       );
-      results.image = imgResult;
     } catch (err) {
-      results.imageError = String(err);
+      result.imageError = String(err);
     }
   }
 
-  return NextResponse.json(results);
+  return result;
+}
+
+export async function GET(req: NextRequest) {
+  if (!authorize(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 503 });
+  }
+
+  const sb = supabaseAdmin();
+  if (!sb) {
+    return NextResponse.json({ error: "Database not configured" }, { status: 503 });
+  }
+
+  const now = new Date();
+  const dateStr = now.toISOString().split("T")[0];
+
+  if (isSunday(now)) {
+    const results: ArticleResult[] = [];
+    for (const key of SUNDAY_JOURNALISTS) {
+      results.push(await processJournalist(key, dateStr, sb));
+    }
+    return NextResponse.json({ day: "sunday", date: dateStr, results });
+  }
+
+  const key = todaysJournalist(now);
+  const result = await processJournalist(key, dateStr, sb);
+  return NextResponse.json(result);
 }
 
 async function generateImage(
   articleId: string,
   prompt: string,
   stylePrefix: string,
-  sb: ReturnType<typeof supabaseAdmin>,
+  sb: SB,
 ): Promise<{ url: string }> {
   const XAI_API_KEY = process.env.XAI_API_KEY!;
   const fullPrompt = `${stylePrefix} ${prompt}. Editorial magazine illustration, high quality, detailed.`;
@@ -253,12 +261,10 @@ async function generateImage(
     allowOverwrite: true,
   });
 
-  if (sb) {
-    await sb
-      .from("articles")
-      .update({ image_hero_url: blob.url, image_url: blob.url })
-      .eq("id", articleId);
-  }
+  await sb
+    .from("articles")
+    .update({ image_hero_url: blob.url, image_url: blob.url })
+    .eq("id", articleId);
 
   return { url: blob.url };
 }

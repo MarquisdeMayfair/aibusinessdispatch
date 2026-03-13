@@ -24,15 +24,6 @@ export async function GET(req: NextRequest) {
   }
 
   const today = new Date();
-  const dow = today.getUTCDay();
-
-  if (dow !== 0) {
-    return NextResponse.json({
-      status: "skipped",
-      reason: "Newsletter compiles on Sundays only",
-    });
-  }
-
   const weekAgo = new Date(today);
   weekAgo.setUTCDate(weekAgo.getUTCDate() - 7);
   const startDate = weekAgo.toISOString().split("T")[0];
