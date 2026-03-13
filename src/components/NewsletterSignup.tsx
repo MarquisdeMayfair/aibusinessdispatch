@@ -4,19 +4,31 @@ import { useState } from "react";
 
 export default function NewsletterSignup() {
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    setSubmitted(true);
+    if (!email || status === "loading") return;
+
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setStatus("success");
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
   };
 
   return (
-    <section
-      id="subscribe"
-      className="max-w-7xl mx-auto px-4 py-16"
-    >
+    <section id="subscribe" className="max-w-7xl mx-auto px-4 py-16">
       <div className="rounded-lg border border-border p-8 md:p-12 text-center bg-[linear-gradient(135deg,#E6394610,transparent_60%)]">
         <h2 className="font-playfair text-3xl md:text-4xl font-bold text-text-primary mb-3">
           The Daily Dispatch
@@ -26,7 +38,7 @@ export default function NewsletterSignup() {
           day. Delivered to your inbox every morning. Free, forever.
         </p>
 
-        {submitted ? (
+        {status === "success" ? (
           <div className="text-accent-optimist font-mono text-sm">
             You&apos;re in. First dispatch arrives tomorrow morning.
           </div>
@@ -45,11 +57,18 @@ export default function NewsletterSignup() {
             />
             <button
               type="submit"
-              className="px-6 py-3 bg-accent-doom text-white text-sm font-mono font-bold rounded hover:bg-accent-doom/90 transition-colors whitespace-nowrap cursor-pointer"
+              disabled={status === "loading"}
+              className="px-6 py-3 bg-accent-doom text-white text-sm font-mono font-bold rounded hover:bg-accent-doom/90 transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
             >
-              Subscribe
+              {status === "loading" ? "Subscribing..." : "Subscribe"}
             </button>
           </form>
+        )}
+
+        {status === "error" && (
+          <p className="mt-3 text-xs text-accent-doom font-mono">
+            Something went wrong. Please try again.
+          </p>
         )}
 
         <p className="mt-4 text-xs text-text-faint font-mono">

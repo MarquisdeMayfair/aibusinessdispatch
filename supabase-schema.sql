@@ -49,6 +49,14 @@ create table if not exists newsletters (
   created_at timestamptz default now()
 );
 
+-- Subscribers table
+create table if not exists subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text unique not null,
+  subscribed_at timestamptz default now(),
+  status text default 'active'
+);
+
 -- Indexes for common queries
 create index if not exists idx_articles_date on articles(date desc);
 create index if not exists idx_articles_slug on articles(slug);
@@ -57,10 +65,12 @@ create index if not exists idx_articles_featured on articles(featured) where fea
 create index if not exists idx_articles_status on articles(status);
 create index if not exists idx_newsletters_date on newsletters(date desc);
 create index if not exists idx_newsletters_slug on newsletters(slug);
+create index if not exists idx_subscribers_email on subscribers(email);
 
 -- Row Level Security
 alter table articles enable row level security;
 alter table newsletters enable row level security;
+alter table subscribers enable row level security;
 
 -- Public read access (anon key can read published articles)
 create policy "Public can read published articles"
@@ -79,5 +89,10 @@ create policy "Service role full access to articles"
 
 create policy "Service role full access to newsletters"
   on newsletters for all
+  using (true)
+  with check (true);
+
+create policy "Service role full access to subscribers"
+  on subscribers for all
   using (true)
   with check (true);
