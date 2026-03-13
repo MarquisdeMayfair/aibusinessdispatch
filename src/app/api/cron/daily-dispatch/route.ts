@@ -144,12 +144,20 @@ async function processJournalist(
   }
 
   const slug = slugify(article.headline as string);
+
+  const rawSources = (article.sources as Array<Record<string, string>>) || [];
+  const normalizedSources = rawSources.map((s) => ({
+    title: s.title || s.name || s.url || "Source",
+    url: s.url || "",
+  }));
+
   const record = {
     ...article,
     id: articleId,
     journalist: key,
     date: dateStr,
     slug,
+    sources: normalizedSources,
     status: "published",
     created_at: new Date().toISOString(),
   };

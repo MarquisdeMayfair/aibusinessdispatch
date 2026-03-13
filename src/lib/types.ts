@@ -26,6 +26,7 @@ export interface Article {
 export interface Source {
   title: string;
   url: string;
+  name?: string;
 }
 
 export interface Newsletter {

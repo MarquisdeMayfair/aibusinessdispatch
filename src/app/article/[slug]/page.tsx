@@ -267,20 +267,26 @@ export default async function ArticlePage({ params }: PageProps) {
             <h3 className="text-xs font-mono text-text-muted tracking-widest uppercase mb-4">
               Sources
             </h3>
-            <ul className="space-y-2">
-              {article.sources.map((src, i) => (
-                <li key={i} className="text-sm">
-                  <a
-                    href={src.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-text-secondary hover:text-text-primary transition-colors underline decoration-border hover:decoration-text-muted"
-                  >
-                    {src.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <ol className="space-y-2 list-decimal list-inside">
+              {article.sources.map((src, i) => {
+                const label = src.title || src.name || src.url;
+                const displayLabel = label.startsWith("http")
+                  ? new URL(label).hostname.replace("www.", "")
+                  : label;
+                return (
+                  <li key={i} className="text-sm text-text-muted">
+                    <a
+                      href={src.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-text-secondary hover:text-text-primary transition-colors underline decoration-border hover:decoration-text-muted"
+                    >
+                      {displayLabel}
+                    </a>
+                  </li>
+                );
+              })}
+            </ol>
           </footer>
         )}
 
