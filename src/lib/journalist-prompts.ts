@@ -36,6 +36,13 @@ If still FAIL: Return abort JSON.
 - Use ## for section headings, ### for sub-sections. Never use # (H1) in the body.
 - Sources go in the "sources" array, not inline cite tags.
 
+## IMAGE PROMPT RULES
+- The "image_prompt" field describes a visual scene for AI image generation.
+- NEVER request text, words, letters, numbers, logos, brand names, labels, captions, or typography in the image prompt. The generated image will have article titles overlaid on top, so any baked-in text will clash.
+- Describe only visual elements: scenes, objects, colours, textures, compositions, art styles.
+- Bad: "Chart showing revenue growth with Microsoft logo and title 'AI Disruption'"
+- Good: "Abstract financial landscape with rising geometric shapes, dark tones, scattered documents"
+
 ## WRITING LIKE A HUMAN — MANDATORY
 
 ### BANNED patterns (these flag AI detection):
@@ -91,7 +98,7 @@ Return ONLY valid JSON matching this schema:
   "body": "Full Markdown, 800-1200 words",
   "tags": ["ai-regulation", ...],
   "sources": [{"name": "Source", "url": "https://..."}],
-  "image_prompt": "Dark collage cutout: [topic-specific scene]. Torn newspapers, redacted docs, warning symbols. Deep reds, blacks, harsh whites."
+  "image_prompt": "Dark collage cutout: [topic-specific scene]. Torn paper fragments, redacted shapes, warning symbols. Deep reds, blacks, harsh whites. No text or letters."
 }`,
   },
 
@@ -128,7 +135,7 @@ Return ONLY valid JSON:
   "body": "Full Markdown, 800-1200 words",
   "tags": ["smb", "ai-adoption", ...],
   "sources": [{"name": "Source", "url": "https://..."}],
-  "image_prompt": "Warm photorealistic: [topic scene]. Natural light, real workspace. Sunday supplement style."
+  "image_prompt": "Warm photorealistic: [topic scene]. Natural light, real workspace. Sunday supplement style. No text or logos."
 }`,
   },
 
@@ -165,7 +172,7 @@ Return ONLY valid JSON:
   "body": "Full Markdown, 800-1200 words",
   "tags": ["ai-architecture", "benchmarks", ...],
   "sources": [{"name": "Source", "url": "https://..."}],
-  "image_prompt": "Isometric technical illustration: [concept]. Neon on dark navy, electric blues, cyans. No people. Blueprint style."
+  "image_prompt": "Isometric technical illustration: [concept]. Neon on dark navy, electric blues, cyans. No people, no text, no labels. Blueprint style."
 }`,
   },
 
@@ -200,7 +207,7 @@ Return ONLY valid JSON:
   "body": "Full Markdown, 800-1200 words",
   "tags": ["strategy", "enterprise", ...],
   "sources": [{"name": "Source", "url": "https://..."}],
-  "image_prompt": "Pen-and-ink editorial: [concept]. Crosshatched, black ink on cream. Gold accent. FT opinion style."
+  "image_prompt": "Pen-and-ink editorial: [concept]. Crosshatched, black ink on cream. Gold accent. No text or lettering. FT opinion style."
 }`,
   },
 
@@ -237,7 +244,7 @@ Return ONLY valid JSON:
   "body": "Full Markdown, 800-1200 words",
   "tags": ["ai-funding", "valuations", ...],
   "sources": [{"name": "Source", "url": "https://..."}],
-  "image_prompt": "Editorial cartoon: [financial concept]. Bold lines, satirical. Greens, blacks, reds. WSJ style."
+  "image_prompt": "Editorial cartoon: [financial concept]. Bold lines, satirical. Greens, blacks, reds. No text, speech bubbles, or captions. WSJ style."
 }`,
   },
 
@@ -272,7 +279,7 @@ Return ONLY valid JSON:
   "body": "Full Markdown, 800-1200 words",
   "tags": ["saas", "enterprise-software", ...],
   "sources": [{"name": "Source", "url": "https://..."}],
-  "image_prompt": "Structured collage: [SaaS concept]. UI fragments, pricing tables. Purples, charcoals, silver."
+  "image_prompt": "Structured collage: [SaaS concept]. Abstract UI shapes, geometric fragments. Purples, charcoals, silver. No text, numbers, or readable elements."
 }`,
   },
 
@@ -307,7 +314,7 @@ Return ONLY valid JSON:
   "body": "Full Markdown, 800-1200 words",
   "tags": ["creative-industry", "ai-art", ...],
   "sources": [{"name": "Source", "url": "https://..."}],
-  "image_prompt": "Mixed-media collage: [creative scene]. Paint splatters, torn images, hand-lettering. Oranges, magentas, yellows."
+  "image_prompt": "Mixed-media collage: [creative scene]. Paint splatters, torn images, abstract brush strokes. Oranges, magentas, yellows. No text or lettering."
 }`,
   },
 
@@ -344,7 +351,7 @@ Return ONLY valid JSON:
   "body": "Full Markdown, 800-1200 words",
   "tags": ["compliance", "companies-house", ...],
   "sources": [{"name": "Source", "url": "https://..."}],
-  "image_prompt": "Vintage editorial illustration: [compliance scenario]. Hand-drawn, yellowed, 1940s style. Sepia accent. Beleaguered professionals, paper stacks."
+  "image_prompt": "Vintage editorial illustration: [compliance scenario]. Hand-drawn, yellowed, 1940s style. Sepia accent. Beleaguered professionals, paper stacks. No text or words."
 }`,
   },
 };

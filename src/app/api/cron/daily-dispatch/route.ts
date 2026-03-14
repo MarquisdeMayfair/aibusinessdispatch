@@ -233,7 +233,7 @@ async function generateImage(
   sb: SB,
 ): Promise<{ url: string }> {
   const XAI_API_KEY = process.env.XAI_API_KEY!;
-  const fullPrompt = `${stylePrefix} ${prompt}. Editorial magazine illustration, high quality, detailed.`;
+  const fullPrompt = `${stylePrefix} ${prompt}. Editorial magazine illustration, high quality, detailed. CRITICAL: Do NOT include any text, words, letters, numbers, logos, brand names, labels, captions, watermarks, or typography anywhere in the image. The image must be purely visual with zero readable characters.`;
 
   const xaiRes = await fetch("https://api.x.ai/v1/images/generations", {
     method: "POST",
