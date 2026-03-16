@@ -49,7 +49,7 @@ export default function NewsTicker() {
               ref={scrollRef}
               className="flex gap-8 py-2.5"
               style={{
-                animation: `ticker-scroll ${items.length * 4}s linear infinite`,
+                animation: `ticker-scroll ${Math.max(items.length * 1.8, 15)}s linear infinite`,
                 animationPlayState: isPaused ? "paused" : "running",
               }}
             >
