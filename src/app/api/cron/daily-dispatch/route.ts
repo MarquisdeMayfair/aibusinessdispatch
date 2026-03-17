@@ -215,7 +215,22 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const dateStr = now.toISOString().split("T")[0];
 
+  const forceJournalist = req.nextUrl.searchParams.get("journalist") as JournalistKey | null;
+
   try {
+    if (forceJournalist) {
+      const result = await processJournalist(forceJournalist, dateStr, sb);
+      await logger.log({
+        status: result.status,
+        journalist: forceJournalist,
+        article_id: result.articleId,
+        headline: result.headline,
+        detail: { date: dateStr, slug: result.slug, forced: true, imageError: result.imageError },
+        error: result.error,
+      });
+      return NextResponse.json(result);
+    }
+
     if (isSunday(now)) {
       const results: ArticleResult[] = [];
       for (const key of SUNDAY_JOURNALISTS) {
