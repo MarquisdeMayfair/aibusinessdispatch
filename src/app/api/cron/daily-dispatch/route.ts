@@ -65,35 +65,43 @@ async function processJournalist(
   key: JournalistKey,
   dateStr: string,
   sb: SB,
+  opts?: { topic?: string; idSuffix?: string },
 ): Promise<ArticleResult> {
-  const articleId = journalistArticleId(key, new Date(dateStr + "T00:00:00Z"));
+  const baseDate = new Date(dateStr + "T00:00:00Z");
+  const articleId = opts?.idSuffix
+    ? `${key}-${dateStr}-${opts.idSuffix}`
+    : journalistArticleId(key, baseDate);
   const promptData = getJournalistPrompt(key);
 
-  const { data: existing } = await sb
-    .from("articles")
-    .select("id, image_hero_url, image_prompt")
-    .eq("id", articleId)
-    .maybeSingle();
+  if (!opts?.topic) {
+    const { data: existing } = await sb
+      .from("articles")
+      .select("id, image_hero_url, image_prompt")
+      .eq("id", articleId)
+      .maybeSingle();
 
-  if (existing && existing.image_hero_url) {
-    return { journalist: key, articleId, status: "skipped" };
-  }
+    if (existing && existing.image_hero_url) {
+      return { journalist: key, articleId, status: "skipped" };
+    }
 
-  if (existing && !existing.image_hero_url && process.env.XAI_API_KEY) {
-    try {
-      const img = await generateImage(
-        articleId,
-        (existing.image_prompt as string) || promptData.name,
-        promptData.imageStylePrefix,
-        sb,
-      );
-      return { journalist: key, articleId, status: "image_repaired", image: img };
-    } catch (err) {
-      return { journalist: key, articleId, status: "image_repair_failed", imageError: String(err) };
+    if (existing && !existing.image_hero_url && process.env.XAI_API_KEY) {
+      try {
+        const img = await generateImage(
+          articleId,
+          (existing.image_prompt as string) || promptData.name,
+          promptData.imageStylePrefix,
+          sb,
+        );
+        return { journalist: key, articleId, status: "image_repaired", image: img };
+      } catch (err) {
+        return { journalist: key, articleId, status: "image_repair_failed", imageError: String(err) };
+      }
     }
   }
 
-  const userMessage = `Today is ${dateStr}. Research and write today's article. Use web search to find a fresh, real story from the last 48 hours that fits your beat. Return ONLY the JSON article object — no commentary, no markdown fences, just the JSON.`;
+  const userMessage = opts?.topic
+    ? `Today is ${dateStr}. Write an article about the following topic. Use web search to verify facts and gather details. Topic: ${opts.topic}. Return ONLY the JSON article object — no commentary, no markdown fences, just the JSON.`
+    : `Today is ${dateStr}. Research and write today's article. Use web search to find a fresh, real story from the last 48 hours that fits your beat. Return ONLY the JSON article object — no commentary, no markdown fences, just the JSON.`;
 
   let claudeResponse: ClaudeResponse;
   try {
@@ -216,16 +224,22 @@ export async function GET(req: NextRequest) {
   const dateStr = now.toISOString().split("T")[0];
 
   const forceJournalist = req.nextUrl.searchParams.get("journalist") as JournalistKey | null;
+  const topicParam = req.nextUrl.searchParams.get("topic");
+  const idSuffix = req.nextUrl.searchParams.get("suffix");
 
   try {
     if (forceJournalist) {
-      const result = await processJournalist(forceJournalist, dateStr, sb);
+      const opts = {
+        ...(topicParam ? { topic: topicParam } : {}),
+        ...(idSuffix ? { idSuffix } : {}),
+      };
+      const result = await processJournalist(forceJournalist, dateStr, sb, Object.keys(opts).length ? opts : undefined);
       await logger.log({
         status: result.status,
         journalist: forceJournalist,
         article_id: result.articleId,
         headline: result.headline,
-        detail: { date: dateStr, slug: result.slug, forced: true, imageError: result.imageError },
+        detail: { date: dateStr, slug: result.slug, forced: true, topic: topicParam, imageError: result.imageError },
         error: result.error,
       });
       return NextResponse.json(result);
