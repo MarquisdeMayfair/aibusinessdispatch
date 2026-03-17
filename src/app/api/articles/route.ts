@@ -74,6 +74,36 @@ export async function GET() {
   return NextResponse.json(data);
 }
 
+export async function PATCH(req: NextRequest) {
+  if (!authorize(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const sb = supabaseAdmin();
+  if (!sb) {
+    return NextResponse.json({ error: "Database not configured" }, { status: 503 });
+  }
+
+  const { id, ...updates } = await req.json();
+
+  if (!id) {
+    return NextResponse.json({ error: "Missing required field: id" }, { status: 400 });
+  }
+
+  const { data, error } = await sb
+    .from("articles")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
+}
+
 export async function POST(req: NextRequest) {
   if (!authorize(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
