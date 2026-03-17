@@ -55,7 +55,8 @@ export type JournalistKey =
   | "secretarial_pool"
   | "money_machine"
   | "saas_whisperer"
-  | "creative_destruction";
+  | "creative_destruction"
+  | "mr_deansgate";
 
 export type Category =
   | "risks_warnings"
@@ -65,7 +66,8 @@ export type Category =
   | "workplace_culture"
   | "finance_investment"
   | "saas_tools"
-  | "creative_innovation";
+  | "creative_innovation"
+  | "uk_tech_product_review";
 
 export interface Journalist {
   key: JournalistKey;

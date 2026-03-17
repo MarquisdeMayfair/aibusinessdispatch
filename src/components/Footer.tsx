@@ -10,8 +10,8 @@ export default function Footer() {
               AI Business Dispatch
             </h3>
             <p className="text-sm text-text-secondary leading-relaxed">
-              The sharpest AI business analysis, delivered daily. Eight
-              specialist journalists, eight unique perspectives. No fluff, no
+              The sharpest AI business analysis, delivered daily. Nine
+              specialist journalists, nine unique perspectives. No fluff, no
               sponsored content, no paywall.
             </p>
           </div>

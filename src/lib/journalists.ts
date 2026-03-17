@@ -81,6 +81,16 @@ export const JOURNALISTS: Record<JournalistKey, Journalist> = {
     description:
       "Explores how AI reshapes creativity, media, design, and the cultural landscape of business.",
   },
+  mr_deansgate: {
+    key: "mr_deansgate",
+    name: "Mr Deansgate",
+    title: "UK Tech & Product Review Correspondent",
+    color: "#1E6F5C",
+    tailwindColor: "accent-deansgate",
+    icon: "Globe",
+    description:
+      "Veteran technologist and serial entrepreneur reviews UK tech products, SaaS tools, and agentic AI with a marketing brain and 25 years of battle scars.",
+  },
 };
 
 export const JOURNALIST_LIST = Object.values(JOURNALISTS);

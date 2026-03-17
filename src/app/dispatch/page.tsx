@@ -10,7 +10,7 @@ const SITE_URL = "https://aibusinessdispatch.com";
 export const metadata: Metadata = {
   title: "Dispatch Archive",
   description:
-    "Every edition of the AI Business Dispatch newsletter. Weekly intelligence briefings compiled from eight specialist AI journalists.",
+    "Every edition of the AI Business Dispatch newsletter. Weekly intelligence briefings compiled from nine specialist AI journalists.",
   alternates: { canonical: `${SITE_URL}/dispatch` },
 };
 

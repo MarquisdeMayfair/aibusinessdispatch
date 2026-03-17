@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: "%s — AI Business Dispatch",
   },
   description:
-    "The sharpest AI business analysis. Eight specialist journalists, daily intelligence on risks, opportunities, strategy, finance, SaaS, creative and technical deep-dives. No fluff, no sponsored content.",
+    "The sharpest AI business analysis. Nine specialist journalists, daily intelligence on risks, opportunities, strategy, finance, SaaS, UK tech, creative and technical deep-dives. No fluff, no sponsored content.",
   keywords: [
     "AI business news",
     "artificial intelligence enterprise",

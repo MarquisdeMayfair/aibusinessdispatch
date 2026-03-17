@@ -16,7 +16,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "AI Business Dispatch — Intelligence for the AI-Augmented Enterprise",
   description:
-    "Today's sharpest AI business analysis. Eight specialist journalists deliver daily intelligence on risks, opportunities, strategy, finance, SaaS, creative and technical deep-dives.",
+    "Today's sharpest AI business analysis. Nine specialist journalists deliver daily intelligence on risks, opportunities, strategy, finance, SaaS, creative, UK tech and technical deep-dives.",
   alternates: { canonical: "https://aibusinessdispatch.com" },
 };
 
@@ -28,7 +28,7 @@ function WebSiteJsonLd() {
     alternateName: "AIBD",
     url: "https://aibusinessdispatch.com",
     description:
-      "Intelligence for the AI-Augmented Enterprise. Eight specialist journalists, daily analysis.",
+      "Intelligence for the AI-Augmented Enterprise. Nine specialist journalists, daily analysis.",
     publisher: {
       "@type": "Organization",
       name: "AI Business Dispatch",

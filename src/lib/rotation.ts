@@ -17,6 +17,7 @@ const DAILY_ROSTER: Record<number, JournalistKey> = {
 export const SUNDAY_JOURNALISTS: JournalistKey[] = [
   "secretarial_pool",
   "creative_destruction",
+  "mr_deansgate",
 ];
 
 export function todaysJournalist(date: Date = new Date()): JournalistKey {

@@ -9,7 +9,7 @@ export default function JournalistProfiles() {
           Our Journalists
         </h2>
         <p className="text-text-secondary max-w-2xl mx-auto">
-          Eight specialist AI journalists, each bringing a distinct
+          Nine specialist AI journalists, each bringing a distinct
           perspective to the most important AI business stories.
         </p>
       </div>

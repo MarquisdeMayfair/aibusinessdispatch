@@ -34,7 +34,7 @@ export default function NewsletterSignup() {
           The Daily Dispatch
         </h2>
         <p className="text-text-secondary max-w-xl mx-auto mb-8">
-          Eight perspectives on the most important AI business story of the
+          Nine perspectives on the most important AI business story of the
           day. Delivered to your inbox every morning. Free, forever.
         </p>
 
