@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { JOURNALISTS } from "@/lib/journalists";
 import { JournalistKey } from "@/lib/types";
+import { CronLogger } from "@/lib/cron-logger";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -23,6 +24,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 });
   }
 
+  const logger = new CronLogger(sb, "compile-newsletter");
+
   const today = new Date();
   const weekAgo = new Date(today);
   weekAgo.setUTCDate(weekAgo.getUTCDate() - 7);
@@ -37,6 +40,11 @@ export async function GET(req: NextRequest) {
     .order("date", { ascending: false });
 
   if (error || !articles || articles.length === 0) {
+    await logger.log({
+      status: "skipped",
+      detail: { reason: "No articles found for the past week", startDate, endDate },
+      error: error?.message,
+    });
     return NextResponse.json({
       status: "skipped",
       reason: "No articles found for the past week",
@@ -128,8 +136,19 @@ export async function GET(req: NextRequest) {
     .single();
 
   if (nlError) {
+    await logger.log({
+      status: "db_error",
+      detail: { dateStr, articleCount: articles.length },
+      error: nlError.message,
+    });
     return NextResponse.json({ error: nlError.message }, { status: 500 });
   }
+
+  await logger.log({
+    status: "published",
+    headline: newsletter.title,
+    detail: { dateStr, articleCount: articles.length, edition: weekNum, newsletterId: data?.id },
+  });
 
   return NextResponse.json({
     status: "published",

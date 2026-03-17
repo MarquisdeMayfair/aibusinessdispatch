@@ -10,6 +10,7 @@ import { getJournalistPrompt } from "@/lib/journalist-prompts";
 import { slugify } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase";
 import { JournalistKey } from "@/lib/types";
+import { CronLogger } from "@/lib/cron-logger";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -210,20 +211,49 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 });
   }
 
+  const logger = new CronLogger(sb, "daily-dispatch");
   const now = new Date();
   const dateStr = now.toISOString().split("T")[0];
 
-  if (isSunday(now)) {
-    const results: ArticleResult[] = [];
-    for (const key of SUNDAY_JOURNALISTS) {
-      results.push(await processJournalist(key, dateStr, sb));
+  try {
+    if (isSunday(now)) {
+      const results: ArticleResult[] = [];
+      for (const key of SUNDAY_JOURNALISTS) {
+        const r = await processJournalist(key, dateStr, sb);
+        results.push(r);
+        await logger.log({
+          status: r.status,
+          journalist: key,
+          article_id: r.articleId,
+          headline: r.headline,
+          detail: { day: "sunday", date: dateStr, imageError: r.imageError },
+          error: r.error,
+        });
+      }
+      return NextResponse.json({ day: "sunday", date: dateStr, results });
     }
-    return NextResponse.json({ day: "sunday", date: dateStr, results });
-  }
 
-  const key = todaysJournalist(now);
-  const result = await processJournalist(key, dateStr, sb);
-  return NextResponse.json(result);
+    const key = todaysJournalist(now);
+    const result = await processJournalist(key, dateStr, sb);
+
+    await logger.log({
+      status: result.status,
+      journalist: key,
+      article_id: result.articleId,
+      headline: result.headline,
+      detail: { date: dateStr, slug: result.slug, imageError: result.imageError },
+      error: result.error,
+    });
+
+    return NextResponse.json(result);
+  } catch (err) {
+    await logger.log({
+      status: "fatal_error",
+      error: String(err),
+      detail: { date: dateStr },
+    });
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
 
 async function generateImage(
