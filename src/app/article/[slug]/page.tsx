@@ -7,6 +7,7 @@ import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import JournalistIcon from "@/components/JournalistIcon";
 import ArticleBody from "./ArticleBody";
+import ShareButtons from "@/components/ShareButtons";
 import type { Metadata } from "next";
 import type { Article } from "@/lib/types";
 
@@ -238,6 +239,13 @@ export default async function ArticlePage({ params }: PageProps) {
               </span>
             ))}
           </div>
+
+          <div className="mt-6">
+            <ShareButtons
+              url={`${SITE_URL}/article/${article.slug}`}
+              title={article.headline}
+            />
+          </div>
         </header>
 
         {/* Hero image */}
@@ -260,6 +268,14 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* Body */}
         <ArticleBody body={article.body} />
+
+        {/* Share (bottom) */}
+        <div className="mt-10 pt-8 border-t border-border">
+          <ShareButtons
+            url={`${SITE_URL}/article/${article.slug}`}
+            title={article.headline}
+          />
+        </div>
 
         {/* Sources */}
         {article.sources && article.sources.length > 0 && (
