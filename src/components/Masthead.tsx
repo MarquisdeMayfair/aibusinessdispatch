@@ -106,7 +106,7 @@ export default function Masthead({ variant = "default" }: MastheadProps) {
               Newsletters
             </Link>
             <Link
-              href="/#journalists"
+              href="/journalists"
               className={`hover:${isOverlay ? "text-white" : "text-text-primary"} transition-colors`}
             >
               Journalists
@@ -136,7 +136,7 @@ export default function Masthead({ variant = "default" }: MastheadProps) {
               { href: "/", label: "Today" },
               { href: "/articles", label: "Archive" },
               { href: "/dispatch", label: "Newsletters" },
-              { href: "/#journalists", label: "Journalists" },
+              { href: "/journalists", label: "Journalists" },
               { href: "/#subscribe", label: "Subscribe" },
             ].map((link) => (
               <Link

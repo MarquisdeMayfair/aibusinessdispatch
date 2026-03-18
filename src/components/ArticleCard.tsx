@@ -3,6 +3,7 @@ import { Article } from "@/lib/types";
 import { JOURNALISTS } from "@/lib/journalists";
 import { readingTime } from "@/lib/utils";
 import JournalistIcon from "./JournalistIcon";
+import JournalistLink from "./JournalistLink";
 
 interface ArticleCardProps {
   article: Article;
@@ -82,12 +83,12 @@ export default function ArticleCard({
               <JournalistIcon icon={journalist.icon} size={16} />
             </div>
             <div className="flex items-center gap-2">
-              <span
+              <JournalistLink
+                journalistKey={journalist.key}
+                name={journalist.name}
+                color={journalist.color}
                 className="text-xs font-mono font-bold uppercase tracking-wider"
-                style={{ color: journalist.color }}
-              >
-                {journalist.name}
-              </span>
+              />
               <span className="text-text-faint">·</span>
               <span className="text-xs text-text-muted font-mono">
                 {readingTime(article.body)}
@@ -139,12 +140,12 @@ export default function ArticleCard({
             >
               <JournalistIcon icon={journalist.icon} size={12} />
             </div>
-            <span
+            <JournalistLink
+              journalistKey={journalist.key}
+              name={journalist.name}
+              color={journalist.color}
               className="text-xs font-mono font-bold uppercase tracking-wider drop-shadow-lg"
-              style={{ color: journalist.color }}
-            >
-              {journalist.name}
-            </span>
+            />
           </div>
         </div>
         <div className="p-5">
@@ -180,12 +181,12 @@ export default function ArticleCard({
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <span
+          <JournalistLink
+            journalistKey={journalist.key}
+            name={journalist.name.split(" ")[0]}
+            color={journalist.color}
             className="text-xs font-mono uppercase tracking-wider"
-            style={{ color: journalist.color }}
-          >
-            {journalist.name.split(" ")[0]}
-          </span>
+          />
           <span className="text-text-faint text-xs">·</span>
           <span className="text-xs text-text-muted font-mono">
             {readingTime(article.body)}

@@ -179,9 +179,13 @@ export default async function ArticlePage({ params }: PageProps) {
             </li>
             <li aria-hidden="true" className="mx-2">/</li>
             <li>
-              <span style={{ color: journalist?.color }}>
+              <Link
+                href={`/articles?journalist=${article.journalist}`}
+                className="hover:underline transition-colors"
+                style={{ color: journalist?.color }}
+              >
                 {journalist?.name}
-              </span>
+              </Link>
             </li>
           </ol>
         </nav>
@@ -201,12 +205,13 @@ export default async function ArticlePage({ params }: PageProps) {
                   <JournalistIcon icon={journalist.icon} size={20} />
                 </div>
                 <div>
-                  <div
-                    className="text-sm font-mono font-bold"
+                  <Link
+                    href={`/articles?journalist=${article.journalist}`}
+                    className="text-sm font-mono font-bold hover:underline"
                     style={{ color: journalist.color }}
                   >
                     {journalist.name}
-                  </div>
+                  </Link>
                   <div className="text-xs text-text-muted font-mono">
                     {journalist.title}
                   </div>

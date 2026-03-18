@@ -38,7 +38,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/#journalists"
+                  href="/journalists"
                   className="hover:text-text-primary transition-colors"
                 >
                   Our Journalists

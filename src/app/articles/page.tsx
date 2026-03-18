@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { getArticles } from "@/lib/data";
+import { JOURNALISTS } from "@/lib/journalists";
 import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
+import JournalistIcon from "@/components/JournalistIcon";
 import type { Metadata } from "next";
 
 const SITE_URL = "https://aibusinessdispatch.com";
@@ -68,14 +71,58 @@ export default async function ArticlesPage({
 
       <main className="max-w-7xl mx-auto px-4 py-12">
         <div className="mb-8">
-          <h1 className="font-playfair text-3xl md:text-4xl font-black text-text-primary mb-2">
-            Article Archive
-          </h1>
-          <p className="text-text-secondary font-source">
-            {filtered.length} article{filtered.length !== 1 ? "s" : ""}
-            {q ? ` matching "${q}"` : ""}
-            {journalist ? ` by ${journalist}` : ""}
-          </p>
+          {journalist && JOURNALISTS[journalist as keyof typeof JOURNALISTS] ? (
+            (() => {
+              const j = JOURNALISTS[journalist as keyof typeof JOURNALISTS];
+              return (
+                <>
+                  <Link
+                    href="/articles"
+                    className="inline-flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text-primary transition-colors mb-4"
+                  >
+                    ← All articles
+                  </Link>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div
+                      className="w-14 h-14 rounded-full flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor: `${j.color}20`,
+                        color: j.color,
+                      }}
+                    >
+                      <JournalistIcon icon={j.icon} size={28} />
+                    </div>
+                    <div>
+                      <h1
+                        className="font-playfair text-3xl md:text-4xl font-black"
+                        style={{ color: j.color }}
+                      >
+                        {j.name}
+                      </h1>
+                      <p className="text-sm text-text-muted font-mono">
+                        {j.title}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-text-secondary mb-2">{j.description}</p>
+                  <p className="text-text-muted text-sm font-mono">
+                    {filtered.length} article
+                    {filtered.length !== 1 ? "s" : ""} published
+                  </p>
+                </>
+              );
+            })()
+          ) : (
+            <>
+              <h1 className="font-playfair text-3xl md:text-4xl font-black text-text-primary mb-2">
+                Article Archive
+              </h1>
+              <p className="text-text-secondary font-source">
+                {filtered.length} article{filtered.length !== 1 ? "s" : ""}
+                {q ? ` matching "${q}"` : ""}
+              </p>
+            </>
+          )}
         </div>
 
         {/* Search */}

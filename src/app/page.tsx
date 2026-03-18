@@ -3,7 +3,6 @@ import { getArticles } from "@/lib/data";
 import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
-import JournalistProfiles from "@/components/JournalistProfiles";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import JournalistIcon from "@/components/JournalistIcon";
 import NewsTicker from "@/components/NewsTicker";
@@ -111,12 +110,13 @@ export default async function HomePage() {
                     style={{ backgroundColor: `${heroJournalist.color}25` }}
                   >
                     <JournalistIcon icon={heroJournalist.icon} size={12} />
-                    <span
-                      className="text-xs font-mono font-bold uppercase tracking-wider"
+                    <Link
+                      href={`/articles?journalist=${heroArticle.journalist}`}
+                      className="text-xs font-mono font-bold uppercase tracking-wider hover:underline"
                       style={{ color: heroJournalist.color }}
                     >
                       {heroJournalist.name}
-                    </span>
+                    </Link>
                   </div>
                 </div>
 
@@ -247,7 +247,6 @@ export default async function HomePage() {
           </section>
         )}
 
-        <JournalistProfiles />
       </main>
 
       <Footer />
